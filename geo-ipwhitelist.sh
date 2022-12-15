@@ -6,10 +6,10 @@
 
 #VARIABLES
 ################
-countryCodes=("US" "CH") #ISO alpha-2 codes
+countryCodes=${COUNTRY_CODES:-("US" "CH")} #ISO alpha-2 codes
 maxMindLicenceKey=${MAXMIND_KEY}
-middlewareFilename="geo-ipwhitelist.yml"
-middlewareName="middlewares-geo-ipwhitelist"
+middlewareFilename=${IPWHITELIST_FILENAME:-"geo-ipwhitelist.yml"}
+middlewareName=${IPWHITELIST_NAME:-"middlewares-geo-ipwhitelist"}
 traefikProviderDir="/rules"
 lastModifiedFilename="last-modified.txt"
 middlewareFilePath="${traefikProviderDir}/${middlewareFilename}"
