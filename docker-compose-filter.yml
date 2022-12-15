@@ -1,0 +1,12 @@
+services:
+    geoip-filter:
+      container_name: geoip-filter
+      build:
+        context: .
+        dockerfile: Dockerfile
+      volumes:
+        - ${TRAEFIK_PROVIDER_DIR}:/rules
+      environment:
+        - MAXMIND_KEY=${MAXMIND_KEY}
+        - COUNTRY_CODES=${COUNTRY_CODES}
+      
