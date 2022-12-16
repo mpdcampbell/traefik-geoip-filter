@@ -4,9 +4,11 @@ services:
       build:
         context: .
         dockerfile: Dockerfile
+      image: geoipfilter
       volumes:
         - ${TRAEFIK_PROVIDER_DIR}:/rules
       environment:
         - MAXMIND_KEY=${MAXMIND_KEY}
         - COUNTRY_CODES=${COUNTRY_CODES}
+        - IS_LASTMODIFIED_LOCAL=false
       
