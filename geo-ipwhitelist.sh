@@ -4,21 +4,32 @@
 #The country IP data is obtained from the GeoLite2 csv database created by maxmind
 #Accessing the GeoLite 2 database is free but requires an account and licence key, see maxmind.com 
 
-#VARIABLES
+#DEFINE VARIABLES
 ################
-countryCodes=${COUNTRY_CODES:-("US" "CH")} #ISO alpha-2 codes
+
+countryCodes=($COUNTRY_CODES) #ISO alpha-2 codes
 maxMindLicenceKey=${MAXMIND_KEY}
 middlewareFilename=${IPWHITELIST_FILENAME:-"geo-ipwhitelist.yml"}
 middlewareName=${IPWHITELIST_NAME:-"middlewares-geo-ipwhitelist"}
 traefikProviderDir="/rules"
 lastModifiedFilename="last-modified.txt"
 middlewareFilePath="${traefikProviderDir}/${middlewareFilename}"
-lastModifiedFilePath="$(dirname $0)/${lastModifiedFilename}"
+
+isLastModifiedLocal=${IS_LASTMODIFIED_LOCAL:-false}
+if [ ${isLastModifiedLocal} = true ]; then
+  lastModifiedDir=${LASTMODIFIED_DIR:-$traefikProviderDir}
+else
+  lastModifiedDir=$(dirname $0)
+fi
+lastModifiedFilePath="${lastModifiedDir}/${lastModifiedFilename}"
 
 #SCRIPT
 #################
 
-#Check variables were updated
+#Check mandatory variables
+if [ -z "$countryCodes" ]; then
+  echo "Error: The countryCodes variable is empty, exiting script."
+  exit 1
 if [ -z "$maxMindLicenceKey" ]; then
   echo "Error: The maxMindLicenceKey variable is empty, exiting script."
   exit 1
