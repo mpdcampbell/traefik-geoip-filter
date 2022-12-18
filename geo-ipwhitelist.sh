@@ -30,7 +30,7 @@ lastModifiedFilePath="${lastModifiedDir}/${lastModifiedFilename}"
 if [ -z "$countryCodes" ]; then
   echo "Error: The countryCodes variable is empty, exiting script."
   exit 1
-if [ -z "$maxMindLicenceKey" ]; then
+elif [ -z "$maxMindLicenceKey" ]; then
   echo "Error: The maxMindLicenceKey variable is empty, exiting script."
   exit 1
 elif [ -z "$traefikProviderDir" ]; then
