@@ -12,15 +12,9 @@ maxMindLicenceKey=${MAXMIND_KEY}
 middlewareFilename=${IPWHITELIST_FILENAME:-"geo-ipwhitelist.yml"}
 middlewareName=${IPWHITELIST_NAME:-"middlewares-geo-ipwhitelist"}
 traefikProviderDir="/rules"
-lastModifiedFilename="last-modified.txt"
+lastModifiedFilename=${LASTMODIFIED_FILENAME:-"last-modified.txt"}
 middlewareFilePath="${traefikProviderDir}/${middlewareFilename}"
-
-isLastModifiedLocal=${IS_LASTMODIFIED_LOCAL:-false}
-if [ ${isLastModifiedLocal} = true ]; then
-  lastModifiedDir=${LASTMODIFIED_DIR:-$traefikProviderDir}
-else
-  lastModifiedDir=$(dirname $0)
-fi
+lastModifiedDir=${LASTMODIFIED_DIR:-$(dirname $0)}
 lastModifiedFilePath="${lastModifiedDir}/${lastModifiedFilename}"
 
 #SCRIPT
@@ -28,13 +22,13 @@ lastModifiedFilePath="${lastModifiedDir}/${lastModifiedFilename}"
 
 #Check mandatory variables
 if [ -z "$countryCodes" ]; then
-  echo "Error: The countryCodes variable is empty, exiting script."
+  echo "Error: The COUNTRY_CODES environment variable is empty, exiting script."
   exit 1
 elif [ -z "$maxMindLicenceKey" ]; then
-  echo "Error: The maxMindLicenceKey variable is empty, exiting script."
+  echo "Error: The MAXMIND_KEY environment variable is empty, exiting script."
   exit 1
-elif [ -z "$traefikProviderDir" ]; then
-  echo "Error: The traefikProviderDir variable is empty, exiting script."
+elif [ ! -d "$traefikProviderDir" ]; then
+  echo "Error: The TRAFEIK_PROVIDER_DIR volume doesn't exist, exiting script."
   exit 1
 fi
 
