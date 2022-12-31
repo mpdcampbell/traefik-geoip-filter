@@ -70,6 +70,7 @@ sub_getLastModified() {
 } 
 
 country_getZip() {
+  echo "Downloading latest Geolite2 Country database."
   curl -LsS -z "${country_lastModified}" "${countryUrl}" --output "country.zip"
   if grep -q "Invalid license key" country.zip ; then #might remove shouldn't be possible
     echo "Error: MaxMind license key is invalid"
@@ -79,6 +80,7 @@ country_getZip() {
 }
 
 sub_getZip() {
+  echo "Downloading latest GeoLite2 City database."
   curl -LsS -z "${sub_lastModified}" "${subUrl}" --output "sub.zip"
   if grep -q "Invalid license key" sub.zip ; then #might remove shouldn't be possible
     echo "Error: MaxMind license key is invalid"
@@ -88,42 +90,44 @@ sub_getZip() {
 }
 
 country_reformatGlobalList() {
-  unzip -jd country country.zip "*Blocks*.csv" "*Country-Locations-en.csv"
-  cat country/*Blocks*.csv | cut -d, -f 1-2 > country/globalIPList.txt
-  cat country/*Country-Locations-en.csv | cut -d, -f 1,5,6 > country/countryList.txt
-  rm country.zip country/*Blocks*.csv
+  unzip -jd /country country.zip "*Blocks*.csv" "*Country-Locations-en.csv"
+  cat /country/*Blocks*.csv | cut -d, -f 1-2 > /country/globalIPList.txt
+  cat /country/*Country-Locations-en.csv | cut -d, -f 1,5,6 > /country/countryList.txt
+  rm country.zip /country/*Blocks*.csv
 }
 
 sub_reformatGlobalList() {
-  unzip -jd sub sub.zip "*Blocks*.csv" "*City-Locations-en.csv"
-  cat sub/*Blocks*.csv | cut -d, -f 1-2 > sub/globalIPList.txt
-  cat sub/*City-Locations-en.csv | cut -d, -f 1,5,7,8 | sed 's/,/-/2' > sub/subList.txt
-  rm sub.zip sub/*Blocks*.csv
+  unzip -jd /sub sub.zip "*Blocks*.csv" "*City-Locations-en.csv"
+  cat /sub/*Blocks*.csv | cut -d, -f 1-2 > /sub/globalIPList.txt
+  cat /sub/*City-Locations-en.csv | cut -d, -f 1,5,7,8 | sed 's/,/-/2' > /sub/subList.txt
+  rm sub.zip /sub/*Blocks*.csv
 }
 
 country_addIPsToMiddleware() {
-  geoNameID=$( grep -hwF "$1" country/countryList.txt | cut -d, -f1 )
+  geoNameID=$( grep -hwF "$1" /country/countryList.txt | cut -d, -f1 )
   if [ -z "${geoNameID}" ]; then
-    echo "Country "$1" not found in GeoLite2 database"
+    echo "Country "$1" not found in GeoLite2 database, skipping it."
     return 0
   else
+    echo "Adding IPs for country "$1" to middleware."
     echo "          #$1 IPs" >> ${middlewareFilePath}
-    printf "%s\n" ${geoNameID[@]} > country/geoNameID.txt
-    grep -hwFf country/geoNameID.txt country/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
-    rm country/geoNameID.txt
+    printf "%s\n" ${geoNameID[@]} > /country/geoNameID.txt
+    grep -hwFf /country/geoNameID.txt /country/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
+    rm /country/geoNameID.txt
   fi
 }
 
 sub_addIPsToMiddleware() {
-  geoNameID=$( grep -hwF "$1" sub/subList.txt | cut -d, -f1 )
+  geoNameID=$( grep -hwF "$1" /sub/subList.txt | cut -d, -f1 )
   if [ -z "${geoNameID}" ]; then
-    echo "Sublocation "$1" not found in GeoLite2 database"
+    echo "Sublocation "$1" not found in GeoLite2 database, skipping it."
     return 0
   else
+    echo "Adding IPs for country "$1" to middleware."
     echo "          #$1 IPs" >> ${middlewareFilePath}
-    printf "%s\n" ${geoNameID[@]} > sub/geoNameID.txt
-    grep -hwFf sub/geoNameID.txt sub/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
-    rm sub/geoNameID.txt
+    printf "%s\n" ${geoNameID[@]} > /sub/geoNameID.txt
+    grep -hwFf /sub/geoNameID.txt /sub/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
+    rm /sub/geoNameID.txt
   fi
 }
 
@@ -192,7 +196,6 @@ makeEmptyMiddlewareFile
 country_loop "${countryCodes[@]}"
 country_loop "fakeCountry"
 sub_loop "${subCodes[@]}"
-sub_loop "fakeTown"
 sub_loop "Sicily"
 
 echo "middleware completed"
