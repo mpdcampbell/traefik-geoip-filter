@@ -14,8 +14,6 @@ middlewareFilePath="${traefikProviderDir}/${middlewareFilename}"
 lastModifiedDir=${LASTMODIFIED_DIR:-$(dirname $0)}
 lastModifiedFilePath="${lastModifiedDir}/${lastModifiedFilename}"
 
-echo "lastModifiedDir is ${lastModifiedDir}"
-
 countryUrl="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=${maxMindLicenceKey}&suffix=zip"
 subUrl="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City-CSV&license_key=${maxMindLicenceKey}&suffix=zip"
 urls=(${countryURL} ${subURL})
@@ -27,12 +25,12 @@ country_checkUrlLastModified() {
   urlLastModified=$(echo "$urlResponse" | grep last-modified: | sed 's/last-modified: //')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
     echo "Error: The HEAD request on the GeoLite2 Country database failed with status code ${statusCode}"
-    return 1
+    return 0
   elif ! [[ ${urlLastModified} > ${country_lastModified} ]]; then
     echo "GeoLite2 Country database hasn't been updated since middleware was last updated on ${country_lastModified}"
     echo "Not updating Country IPs"
     echo "If you wish to change the ipWhiteList countries, delete ${lastModifiedFilename} and run again."
-    return 1
+    return 0
   fi
 } 
 
@@ -42,12 +40,12 @@ sub_checkUrlLastModified() {
   urlLastModified=$(echo "$urlResponse" | grep last-modified: | sed 's/last-modified: //')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
     echo "Error: The HEAD request on the GeoLite2 City database failed with status code ${statusCode}"
-    return 1
+    return 0
   elif ! [[ ${urlLastModified} > ${country_lastModified} ]]; then
     echo "GeoLite2 City database hasn't been updated since middleware was last updated on ${sub_lastModified}"
     echo "Not updating Subcode IPs"
     echo "If you wish to change the ipWhiteList subCodes, delete ${lastModifiedFilename} and run again."
-    return 1
+    return 0
   fi
 } 
 
@@ -76,7 +74,7 @@ country_getZip() {
   if grep -q "Invalid license key" country.zip ; then #might remove shouldn't be possible
     echo "Error: MaxMind license key is invalid"
     rm country.zip
-    return 1
+    return 0
   fi
 }
 
@@ -85,7 +83,7 @@ sub_getZip() {
   if grep -q "Invalid license key" sub.zip ; then #might remove shouldn't be possible
     echo "Error: MaxMind license key is invalid"
     rm sub.zip
-    return 1
+    return 0
   fi
 }
 
@@ -104,20 +102,29 @@ sub_reformatGlobalList() {
 }
 
 country_addIPsToMiddleware() {
-  geoNameID=$( grep -h "\b$1\b" country/countryList.txt | cut -d, -f1 )
+  geoNameID=$( grep -hwF "$1" country/countryList.txt | cut -d, -f1 )
   if [ -z "${geoNameID}" ]; then
-    echo "$1 not found in GeoIP database"
+    echo "Country "$1" not found in GeoLite2 database"
     return 0
   else
     echo "          #$1 IPs" >> ${middlewareFilePath}
-    grep -hr "\b${geoNameID}\b" country/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
+    printf "%s\n" ${geoNameID[@]} > country/geoNameID.txt
+    grep -hwFf country/geoNameID.txt country/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
+    rm country/geoNameID.txt
   fi
 }
 
 sub_addIPsToMiddleware() {
-  geoNameID=$( grep -h "\b$1\b" sub/subList.txt | cut -d, -f1 )
-  echo "          #$1 IPs" >> ${middlewareFilePath}
-  grep -hr "\b${geoNameID}\b" sub/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
+  geoNameID=$( grep -hwF "$1" sub/subList.txt | cut -d, -f1 )
+  if [ -z "${geoNameID}" ]; then
+    echo "Sublocation "$1" not found in GeoLite2 database"
+    return 0
+  else
+    echo "          #$1 IPs" >> ${middlewareFilePath}
+    printf "%s\n" ${geoNameID[@]} > sub/geoNameID.txt
+    grep -hwFf sub/geoNameID.txt sub/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
+    rm sub/geoNameID.txt
+  fi
 }
 
 makeEmptyMiddlewareFile() {
@@ -183,7 +190,9 @@ mainFunctions 1
 makeEmptyMiddlewareFile
 
 country_loop "${countryCodes[@]}"
+country_loop "fakeCountry"
 sub_loop "${subCodes[@]}"
+sub_loop "fakeTown"
 sub_loop "Sicily"
 
 echo "middleware completed"
