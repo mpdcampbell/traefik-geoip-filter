@@ -99,7 +99,10 @@ country_reformatGlobalList() {
 sub_reformatGlobalList() {
   unzip -jd /sub sub.zip "*Blocks*.csv" "*City-Locations-en.csv"
   cat /sub/*Blocks*.csv | cut -d, -f 1-2 > /sub/globalIPList.txt
-  cat /sub/*City-Locations-en.csv | cut -d, -f 1,5,7,8 | sed 's/,/-/2' > /sub/subList.txt
+  cat /sub/*City-Locations-en.csv | \
+  cut -d, -f 1,5,7,8,9,10 | \
+  sed -r 's/(.*),(.*),(.*),(.*),(.*)(,.*)/\1,\2-\3,\4\,\2-\5\6/' | \
+  sed -r 's/(^.*)(,[A-Z]+-,)(.*)/\1\3/' > /sub/subList.txt
   rm sub.zip /sub/*Blocks*.csv
 }
 
@@ -123,7 +126,7 @@ sub_addIPsToMiddleware() {
     echo "Sublocation "$1" not found in GeoLite2 database, skipping it."
     return 0
   else
-    echo "Adding IPs for country "$1" to middleware."
+    echo "Adding IPs for sublocation "$1" to middleware."
     echo "          #$1 IPs" >> ${middlewareFilePath}
     printf "%s\n" ${geoNameID[@]} > /sub/geoNameID.txt
     grep -hwFf /sub/geoNameID.txt /sub/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
@@ -194,8 +197,6 @@ mainFunctions 1
 makeEmptyMiddlewareFile
 
 country_loop "${countryCodes[@]}"
-country_loop "fakeCountry"
 sub_loop "${subCodes[@]}"
-sub_loop "Sicily"
 
 echo "middleware completed"
