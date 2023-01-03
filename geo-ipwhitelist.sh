@@ -3,7 +3,7 @@
 #VARIABLES
 ################
 
-countryCodes=($COUNTRY_CODES) #ISO alpha-2 codes
+countryCodes=($COUNTRY_CODES) #ISO alpha-2 codes (e.g FR)
 subCodes=($SUB_CODES) #ISO 3166-2 codes (e.g. FR-45)
 maxMindLicenceKey=${MAXMIND_KEY}
 middlewareFilename=${IPWHITELIST_FILENAME:-"geo-ipwhitelist.yml"}
@@ -128,7 +128,7 @@ sub_unzipAndExtractIPs() {
 country_addIPsToMiddleware() {
   geoNameID=$( grep -hwF "$1" ${countryDir}/countryList.txt | cut -d, -f1 )
   if [ -z "${geoNameID}" ]; then
-    echo "Country "$1" not found in GeoLite2 database, skipping it."
+    echo "Country "$1" not found in GeoLite2 Country database, skipping it."
     return 0
   else
     echo "Adding IPs for country "$1" to middleware."
@@ -142,7 +142,7 @@ country_addIPsToMiddleware() {
 sub_addIPsToMiddleware() {
   geoNameID=$( grep -hwF "$1" ${subDir}/subList.txt | cut -d, -f1 )
   if [ -z "${geoNameID}" ]; then
-    echo "Sublocation "$1" not found in GeoLite2 database, skipping it."
+    echo "Sublocation "$1" not found in GeoLite2 City database, skipping it."
     return 0
   else
     echo "Adding IPs for sublocation "$1" to middleware."
@@ -203,12 +203,12 @@ fi
 if ! [ -z "$countryCodes" ]; then
   codesArray[0]=0
 else
-  echo "COUNTRY_CODES environment variable is empty, not downloading country database."
+  echo "COUNTRY_CODES environment variable is empty, not downloading Geolite2 Country database."
 fi
 if ! [ -z "$subCodes" ]; then
   codesArray[1]=1
 else
-  echo "SUB_CODES environment variable is empty, not downloading city database."
+  echo "SUB_CODES environment variable is empty, not downloading Geolite2 City database."
 fi
 
 if [ ${#codesArray[@]} -gt 0 ]; then
