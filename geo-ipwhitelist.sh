@@ -22,20 +22,20 @@ yearsOldDate="Sun, 07 Jan 1990 01:00:00 GMT"
 #FUNCTIONS
 ############
 
-country_getUrlLastModified() {
-  urlResponse=$(curl -ISs "${countryUrl}")
-  statusCode=$(echo "$urlResponse" | grep HTTP)
-  urlLastModified=$(echo "$urlResponse" | grep last-modified: | sed 's/last-modified: //')
+country_getRemoteLastModified() {
+  remoteResponse=$(curl -ISs "${countryUrl}")
+  statusCode=$(echo "$remoteResponse" | grep HTTP)
+  remoteLastModified=$(echo "$remoteResponse" | grep last-modified: | sed 's/last-modified: //')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
     echo "Error: The HEAD request on the GeoLite2 Country database failed with status code ${statusCode}"
     exit 1
   fi
 } 
 
-sub_getUrlLastModified() {
-  urlResponse=$(curl -ISs "${subUrl}")
-  statusCode=$(echo "$urlResponse" | grep HTTP)
-  urlLastModified=$(echo "$urlResponse" | grep last-modified: | sed 's/last-modified: //')
+sub_getRemoteLastModified() {
+  remoteResponse=$(curl -ISs "${subUrl}")
+  statusCode=$(echo "$remoteResponse" | grep HTTP)
+  remoteLastModified=$(echo "$remoteResponse" | grep last-modified: | sed 's/last-modified: //')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
     echo "Error: The HEAD request on the GeoLite2 City database failed with status code ${statusCode}"
     exit 1
@@ -43,68 +43,66 @@ sub_getUrlLastModified() {
 } 
 
 country_getLastModified() {
-  if [ -f "${lastModifiedDir}/country_${lastModifiedFilename}" ]; then
-    country_lastModified="$(cat "${lastModifiedDir}/country_${lastModifiedFilename}")"
-    country_getUrlLastModified
+  if [ -f "${lastModifiedDir}/country${lastModifiedFilename}" ]; then
+    countryLastModified="$(cat "${lastModifiedDir}/country${lastModifiedFilename}")"
   else
-    country_lastModified=${yearsOldDate}
-    echo "No country_${lastModifiedFilename} record found."
+    countryLastModified=${yearsOldDate}
+    echo "No country${lastModifiedFilename} record found."
   fi
-  country_getUrlLastModified
+  country_getRemoteLastModified
 } 
 
 sub_getLastModified() {
-  if [ -f "${lastModifiedDir}/sub_${lastModifiedFilename}" ]; then
-    sub_lastModified="$(cat "${lastModifiedDir}/sub_${lastModifiedFilename}")"
-    sub_getUrlLastModified
+  if [ -f "${lastModifiedDir}/sub${lastModifiedFilename}" ]; then
+    subLastModified="$(cat "${lastModifiedDir}/sub${lastModifiedFilename}")"
   else
-    sub_lastModified=${yearsOldDate}
-    echo "No sub_${lastModifiedFilename} record found."
+    subLastModified=${yearsOldDate}
+    echo "No sub${lastModifiedFilename} record found."
   fi
-  sub_getUrlLastModified
+  sub_getRemoteLastModified
 } 
 
 country_getZip() {
-  if ! [[ ${urlLastModified} > ${country_lastModified} ]]; then
-    echo "GeoLite2 Country database last updated on ${urlLastModified}." 
-    echo "GeoLite2 Country database last downloaded on ${country_lastModified}."
+  if ! [[ ${remoteLastModified} > ${countryLastModified} ]]; then
+    echo "GeoLite2 Country database last updated on ${remoteLastModified}." 
+    echo "GeoLite2 Country database last downloaded on ${countryLastModified}."
     echo "Not downloading GeoLite2 Country database as no new updates."
-    echo "If you wish to force fresh download delete country_${lastModifiedFilename} and run again."
+    echo "If you wish to force fresh download delete country${lastModifiedFilename} and run again."
     echo "Using local IP lists found at ${countryDir}."
     return 0
   else
     echo "Downloading latest Geolite2 Country database."
     mkdir -p ${countryDir}
-    curl -LsS -z "${country_lastModified}" "${countryUrl}" --output "${countryDir}/country.zip"
-    if grep -q "Invalid license key" ${countryDir}/country.zip ; then #might remove shouldn't be possible
+    curl -LsS -z "${countryLastModified}" "${countryUrl}" --output "${countryDir}/country.zip"
+    if grep -q "Invalid license key" ${countryDir}/country.zip ; then
       echo "Error: MaxMind license key is invalid."
       rm ${countryDir}/country.zip
       return 1
     else
-      echo "${urlLastModified}" > "${lastModifiedDir}/country_${lastModifiedFilename}"
+      echo "${remoteLastModified}" > "${lastModifiedDir}/country${lastModifiedFilename}"
       country_unzipAndExtractIPs
     fi
   fi
 }
 
 sub_getZip() {
-  if ! [[ ${urlLastModified} > ${sub_lastModified} ]]; then
-    echo "GeoLite2 City database last updated on ${urlLastModified}." 
-    echo "GeoLite2 City database last downloaded on ${sub_lastModified}."
+  if ! [[ ${remoteLastModified} > ${subLastModified} ]]; then
+    echo "GeoLite2 City database last updated on ${remoteLastModified}." 
+    echo "GeoLite2 City database last downloaded on ${subLastModified}."
     echo "Not downloading GeoLite2 City database as no new updates."
-    echo "If you wish to force fresh download delete sub_${lastModifiedFilename} and run again."
+    echo "If you wish to force fresh download delete sub${lastModifiedFilename} and run again."
     echo "Using local IP lists found at ${subDir}."
     return 0
   else
     echo "Downloading latest GeoLite2 City database."
     mkdir -p ${subDir}
-    curl -LsS -z "${sub_lastModified}" "${subUrl}" --output "${subDir}/sub.zip"
-    if grep -q "Invalid license key" ${subDir}/sub.zip ; then #might remove shouldn't be possible
+    curl -LsS -z "${subLastModified}" "${subUrl}" --output "${subDir}/sub.zip"
+    if grep -q "Invalid license key" ${subDir}/sub.zip ; then
       echo "Error: MaxMind license key is invalid."
       rm sub.zip
       exit 1
     else
-      echo "${urlLastModified}" > "${lastModifiedDir}/sub_${lastModifiedFilename}"
+      echo "${remoteLastModified}" > "${lastModifiedDir}/sub_${lastModifiedFilename}"
       sub_unzipAndExtractIPs
     fi
   fi
@@ -164,7 +162,7 @@ http:
   middlewares:
     ${middlewareName}:
       ipWhiteList:
-        sourcerange:
+        sourceRange:
 EOF
 }
 
@@ -183,7 +181,7 @@ sub_loop () {
   done
 }
 
-mainFunctions () {
+updateGeoIPDatabase () {
   for index in "$@"; do 
     ${getLastModifiedArray[index]}
     ${getZipArray[index]}
@@ -214,14 +212,14 @@ else
 fi
 
 if [ ${#codesArray[@]} -gt 0 ]; then
-  mainFunctions "${codesArray[@]}"
+  updateGeoIPDatabase "${codesArray[@]}"
   makeEmptyMiddlewareFile
   country_loop "${countryCodes[@]}"
   sub_loop "${subCodes[@]}"
   echo "Middleware completed."
 else
   echo "Both COUNTRY_CODES and SUB_CODES environment variables are empty."
-  echo "No geoip locations available to whitelist."
+  echo "No ip locations available to whitelist."
   echo "Exiting script."
   exit 1
 fi
