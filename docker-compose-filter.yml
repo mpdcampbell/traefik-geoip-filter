@@ -1,10 +1,7 @@
 services:
-    geoip-filter:
-      container_name: geoip-filter
-      build:
-        context: .
-        dockerfile: Dockerfile
+    geoipfilter:
       image: geoipfilter
+      container_name: geoipfilter
       volumes:
        - ${TRAEFIK_PROVIDER_DIR}:/rules
       environment:
