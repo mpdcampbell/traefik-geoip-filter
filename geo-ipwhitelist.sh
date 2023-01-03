@@ -31,6 +31,8 @@ country_checkUrlLastModified() {
     echo "Not updating Country IPs"
     echo "If you wish to change the ipWhiteList countries, delete ${lastModifiedFilename} and run again."
     return 0
+  else
+    echo "${country_lastModified}" > ${lastModifiedDir}/country_${lastModifiedFilename}
   fi
 } 
 
@@ -41,17 +43,20 @@ sub_checkUrlLastModified() {
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
     echo "Error: The HEAD request on the GeoLite2 City database failed with status code ${statusCode}"
     return 0
-  elif ! [[ ${urlLastModified} > ${country_lastModified} ]]; then
+  elif ! [[ ${urlLastModified} > ${sub_lastModified} ]]; then
     echo "GeoLite2 City database hasn't been updated since middleware was last updated on ${sub_lastModified}"
     echo "Not updating Subcode IPs"
     echo "If you wish to change the ipWhiteList subCodes, delete ${lastModifiedFilename} and run again."
     return 0
+  else
+    echo "${sub_lastModified}" > ${lastModifiedDir}/sub_${lastModifiedFilename}
   fi
 } 
 
 country_getLastModified() {
   if [ -f "${lastModifiedDir}/country_${lastModifiedFilename}" ]; then
     country_lastModified="$(cat "${lastModifiedDir}/country_${lastModifiedFilename}")"
+    echo ${country_lastModified} > ${lastModifiedDir}/country_${lastModified}
     country_checkUrlLastModified
   else
     country_lastModified=${yearsOldDate} #maybe not needed?
@@ -60,8 +65,8 @@ country_getLastModified() {
 } 
 
 sub_getLastModified() {
-  if [ -f "${lastModifiedDir}/country_${lastModifiedFilename}" ]; then
-    sub_lastModified="$(cat "${lastModifiedDir}/country_${lastModifiedFilename}")"
+  if [ -f "${lastModifiedDir}/sub_${lastModifiedFilename}" ]; then
+    sub_lastModified="$(cat "${lastModifiedDir}/sub_${lastModifiedFilename}")"
     sub_checkUrlLastModified
   else
     sub_lastModified=${yearsOldDate} #maybe not needed?
