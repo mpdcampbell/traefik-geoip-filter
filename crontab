@@ -1,2 +1,1 @@
 0 6 * * wed,sat /opt/scripts/geo-ipwhitelist.sh
-* * * * * echo "Crontab is working"
