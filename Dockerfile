@@ -1,5 +1,7 @@
 FROM alpine:latest
+RUN apk add --no-cache bash curl unzip  
+COPY startUp.sh .
 COPY geo-ipwhitelist.sh /opt/scripts/geo-ipwhitelist.sh
-COPY crontab .
-RUN apk add --no-cache bash curl unzip && crontab crontab
-CMD ./opt/scripts/geo-ipwhitelist.sh 2 && crond -f -l 2
+ARG CRON_EXPRESSION
+ENV CRON_EXPRESSION=${CRON_EXPRESSION:-"0 6 * * wed,sat"}
+CMD ./startUp.sh

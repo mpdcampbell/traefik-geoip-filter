@@ -4,8 +4,9 @@ services:
       container_name: geoipfilter
       volumes:
        - ${TRAEFIK_PROVIDER_DIR}:/rules
+       - ${LOCAL_DIR}:/geoip
       environment:
         - MAXMIND_KEY=${MAXMIND_KEY}
         - COUNTRY_CODES=${COUNTRY_CODES}
         - SUB_CODES=${SUB_CODES}
-      
+        - CRON_EXPRESSION=*/2 * * * *
