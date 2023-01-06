@@ -1,5 +1,5 @@
 FROM alpine:latest
-RUN apk add --no-cache bash curl unzip  
+RUN apk add --no-cache bash curl unzip tzdata 
 COPY startUp.sh .
 COPY geo-ipwhitelist.sh /opt/scripts/geo-ipwhitelist.sh
 ARG CRON_EXPRESSION
