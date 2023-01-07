@@ -9,7 +9,7 @@ maxMindLicenceKey=${MAXMIND_KEY}
 middlewareFilename=${IPWHITELIST_FILENAME:-"geo-ipwhitelist.yml"}
 middlewareName=${IPWHITELIST_NAME:-"middlewares-geo-ipwhitelist"}
 traefikProviderDir=${TRAEFIK_PROVIDER_DIR:-"/rules"}
-lastModifiedFilename=${LASTMODIFIED_FILENAME:-"last-modified.txt"}
+lastModifiedFilename=${LASTMODIFIED_FILENAME:-"LastModified.txt"}
 middlewareFilePath="${traefikProviderDir}/${middlewareFilename}"
 lastModifiedDir=${LASTMODIFIED_DIR:-"/geoip"}
 lastModifiedFilePath="${lastModifiedDir}/${lastModifiedFilename}"
@@ -27,7 +27,7 @@ country_getRemoteLastModified() {
   statusCode=$(echo "$remoteResponse" | grep HTTP)
   remoteLastModified=$(echo "$remoteResponse" | grep last-modified: | sed 's/last-modified: //')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
-    echo "Error: The HEAD request on the GeoLite2 Country database failed with status code ${statusCode}"
+    echo "ERROR: The HEAD request on the GeoLite2 Country database failed with status code ${statusCode}"
     exit 1
   fi
 } 
@@ -37,7 +37,7 @@ sub_getRemoteLastModified() {
   statusCode=$(echo "$remoteResponse" | grep HTTP)
   remoteLastModified=$(echo "$remoteResponse" | grep last-modified: | sed 's/last-modified: //')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
-    echo "Error: The HEAD request on the GeoLite2 City database failed with status code ${statusCode}"
+    echo "ERROR: The HEAD request on the GeoLite2 City database failed with status code ${statusCode}"
     exit 1
   fi
 } 
@@ -64,18 +64,17 @@ sub_getLastModified() {
 
 country_getZip() {
   if ! [[ ${remoteLastModified} > ${countryLastModified} ]]; then
-    echo "GeoLite2 Country database last updated on ${remoteLastModified}." 
-    echo "GeoLite2 Country database last downloaded on ${countryLastModified}."
-    echo "Not downloading GeoLite2 Country database as no new updates."
-    echo "If you wish to force fresh download delete country${lastModifiedFilename} and run again."
-    echo "Using local IP lists found at ${countryDir}."
+    echo "Not downloading GeoLite2 Country database as local copy is up to date."
+    echo "  Remote GeoLite2 Country database was last updated on ${remoteLastModified}." 
+    echo "  Local GeoLite2 Country database version is dated ${countryLastModified}."
+    echo "  If you wish to force fresh download delete country${lastModifiedFilename} and run again."
     return 0
   else
     echo "Downloading latest Geolite2 Country database."
     mkdir -p ${countryDir}
     curl -LsS -z "${countryLastModified}" "${countryUrl}" --output "${countryDir}/country.zip"
     if grep -q "Invalid license key" ${countryDir}/country.zip ; then
-      echo "Error: MaxMind license key is invalid."
+      echo "ERROR: MaxMind license key is invalid."
       rm ${countryDir}/country.zip
       return 1
     else
@@ -87,18 +86,17 @@ country_getZip() {
 
 sub_getZip() {
   if ! [[ ${remoteLastModified} > ${subLastModified} ]]; then
-    echo "GeoLite2 City database last updated on ${remoteLastModified}." 
-    echo "GeoLite2 City database last downloaded on ${subLastModified}."
-    echo "Not downloading GeoLite2 City database as no new updates."
-    echo "If you wish to force fresh download delete sub${lastModifiedFilename} and run again."
-    echo "Using local IP lists found at ${subDir}."
+    echo "Not downloading GeoLite2 City database as local copy is up to date."
+    echo "  Remote GeoLite2 City database was last updated on ${remoteLastModified}." 
+    echo "  Local GeoLite2 City database version is dated ${subLastModified}."
+    echo "  If you wish to force fresh download delete sub${lastModifiedFilename} and run again."
     return 0
   else
     echo "Downloading latest GeoLite2 City database."
     mkdir -p ${subDir}
     curl -LsS -z "${subLastModified}" "${subUrl}" --output "${subDir}/sub.zip"
     if grep -q "Invalid license key" ${subDir}/sub.zip ; then
-      echo "Error: MaxMind license key is invalid."
+      echo "ERROR: MaxMind license key is invalid."
       rm sub.zip
       exit 1
     else
@@ -128,10 +126,10 @@ sub_unzipAndExtractIPs() {
 country_addIPsToMiddleware() {
   geoNameID=$( grep -hwF "$1" ${countryDir}/countryList.txt | cut -d, -f1 )
   if [ -z "${geoNameID}" ]; then
-    echo "Country "$1" not found in GeoLite2 Country database, skipping it."
+    echo "  Country "$1" not found in GeoLite2 Country database, skipping it."
     return 0
   else
-    echo "Adding IPs for country "$1" to middleware."
+    echo "  Adding IPs for country "$1" to middleware."
     echo "          #$1 IPs" >> ${middlewareFilePath}
     printf "%s\n" ${geoNameID[@]} > ${countryDir}/geoNameID.txt
     grep -hwFf ${countryDir}/geoNameID.txt ${countryDir}/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
@@ -142,10 +140,10 @@ country_addIPsToMiddleware() {
 sub_addIPsToMiddleware() {
   geoNameID=$( grep -hwF "$1" ${subDir}/subList.txt | cut -d, -f1 )
   if [ -z "${geoNameID}" ]; then
-    echo "Sublocation "$1" not found in GeoLite2 City database, skipping it."
+    echo "  Location "$1" not found in GeoLite2 City database, skipping it."
     return 0
   else
-    echo "Adding IPs for sublocation "$1" to middleware."
+    echo "  Adding IPs for Location "$1" to middleware."
     echo "          #$1 IPs" >> ${middlewareFilePath}
     printf "%s\n" ${geoNameID[@]} > ${subDir}/geoNameID.txt
     grep -hwFf ${subDir}/geoNameID.txt ${subDir}/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
@@ -157,6 +155,7 @@ makeEmptyMiddlewareFile() {
   if [ -f "${middlewareFilePath}" ]; then
     mv ${middlewareFilePath} ${middlewareFilePath}.old
   fi
+  echo "Writing new ${middlewareName} middleware."
 cat << EOF > ${middlewareFilePath}
 http:
   middlewares:
@@ -193,22 +192,24 @@ updateGeoIPDatabase () {
 
 #Check mandatory variables
 if [ -z "$maxMindLicenceKey" ]; then
-  echo "Error: The MAXMIND_KEY environment variable is empty, exiting script."
+  echo "ERROR: The MAXMIND_KEY environment variable is empty, exiting script."
   exit 1
 elif [ ! -d "$traefikProviderDir" ]; then
-  echo "Error: The TRAFEIK_PROVIDER_DIR volume doesn't exist, exiting script."
+  echo "ERROR: The TRAFEIK_PROVIDER_DIR volume doesn't exist, exiting script."
   exit 1
 fi
 
 if ! [ -z "$countryCodes" ]; then
   codesArray[0]=0
 else
-  echo "COUNTRY_CODES environment variable is empty, not downloading Geolite2 Country database."
+  echo "COUNTRY_CODES environment variable is empty"
+  echo "  Skipping Geolite2 Country database check."
 fi
 if ! [ -z "$subCodes" ]; then
   codesArray[1]=1
 else
-  echo "SUB_CODES environment variable is empty, not downloading Geolite2 City database."
+  echo "SUB_CODES environment variable is empty"
+  echo "  Skipping Geolite2 City database check."
 fi
 
 if [ ${#codesArray[@]} -gt 0 ]; then
@@ -219,7 +220,7 @@ if [ ${#codesArray[@]} -gt 0 ]; then
   echo "Middleware completed."
 else
   echo "Both COUNTRY_CODES and SUB_CODES environment variables are empty."
-  echo "No ip locations available to whitelist."
-  echo "Exiting script."
+  echo "  No GeoIP locations available to whitelist."
+  echo "  Exiting script."
   exit 1
 fi
