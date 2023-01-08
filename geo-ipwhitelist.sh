@@ -100,7 +100,7 @@ sub_getZip() {
       rm sub.zip
       exit 1
     else
-      echo "${remoteLastModified}" > "${lastModifiedDir}/sub_${lastModifiedFilename}"
+      echo "${remoteLastModified}" > "${lastModifiedDir}/sub${lastModifiedFilename}"
       sub_unzipAndExtractIPs
     fi
   fi
@@ -132,7 +132,8 @@ country_addIPsToMiddleware() {
     echo "  Adding IPs for country "$1" to middleware."
     echo "          #$1 IPs" >> ${middlewareFilePath}
     printf "%s\n" ${geoNameID[@]} > ${countryDir}/geoNameID.txt
-    grep -hwFf ${countryDir}/geoNameID.txt ${countryDir}/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
+    grep -hwFf ${countryDir}/geoNameID.txt ${countryDir}/globalIPList.txt | \
+    cut -d, -f1 | sed -r 's/(^.*)/          - "\1"/' >> ${middlewareFilePath}
     rm ${countryDir}/geoNameID.txt
   fi
 }
@@ -146,7 +147,8 @@ sub_addIPsToMiddleware() {
     echo "  Adding IPs for Location "$1" to middleware."
     echo "          #$1 IPs" >> ${middlewareFilePath}
     printf "%s\n" ${geoNameID[@]} > ${subDir}/geoNameID.txt
-    grep -hwFf ${subDir}/geoNameID.txt ${subDir}/globalIPList.txt | cut -d, -f1 | sed 's/^/          - /' >> ${middlewareFilePath}
+    grep -hwFf ${subDir}/geoNameID.txt ${subDir}/globalIPList.txt | \
+    cut -d, -f1 | sed -r 's/(^.*)/          - "\1"/' >> ${middlewareFilePath}
     rm ${subDir}/geoNameID.txt
   fi
 }
