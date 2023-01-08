@@ -1,7 +1,7 @@
 services:
     geoipfilter:
-      image: geoipfilter
-      container_name: geoipfilter
+      image: traefik-geo-ipwhitelist
+      container_name: geoipwhitelist
       volumes:
        - ${TRAEFIK_PROVIDER_DIR}:/rules
        - ${LOCAL_DIR}:/geoip
