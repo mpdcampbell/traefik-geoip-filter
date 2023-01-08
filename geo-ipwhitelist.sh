@@ -129,6 +129,7 @@ country_addIPsToMiddleware() {
     echo "  Country "$1" not found in GeoLite2 Country database, skipping it."
     return 0
   else
+    countryAdded+="$1"
     echo "  Adding IPs for country "$1" to middleware."
     echo "          #$1 IPs" >> ${middlewareFilePath}
     printf "%s\n" ${geoNameID[@]} > ${countryDir}/geoNameID.txt
@@ -144,6 +145,7 @@ sub_addIPsToMiddleware() {
     echo "  Location "$1" not found in GeoLite2 City database, skipping it."
     return 0
   else
+    subAdded+="$1"
     echo "  Adding IPs for Location "$1" to middleware."
     echo "          #$1 IPs" >> ${middlewareFilePath}
     printf "%s\n" ${geoNameID[@]} > ${subDir}/geoNameID.txt
@@ -165,6 +167,16 @@ http:
       ipWhiteList:
         sourceRange:
 EOF
+}
+
+insertLocationList() {
+  sed -i "1s/^/\n/" ${middlewareFilePath}
+  if ! [ -z "$subAdded" ]; then
+    sed -i "1s/^/#Listed Sublocations: ${subAdded[@]}\n/" ${middlewareFilePath}
+  fi
+  if ! [ -z "$countryAdded" ]; then
+    sed -i "1s/^/#Listed Countries: ${countryAdded[@]}\n/" ${middlewareFilePath}
+  fi
 }
 
 getLastModifiedArray=(country_getLastModified sub_getLastModified)
@@ -219,6 +231,7 @@ if [ ${#codesArray[@]} -gt 0 ]; then
   makeEmptyMiddlewareFile
   country_loop "${countryCodes[@]}"
   sub_loop "${subCodes[@]}"
+  insertLocationList
   echo "Middleware completed."
 else
   echo "Both COUNTRY_CODES and SUB_CODES environment variables are empty."
