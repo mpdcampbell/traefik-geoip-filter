@@ -191,6 +191,26 @@ cat << EOF >> ${ipListFilePath}
 EOF
 }
 
+writeDefaultConf() {
+  if [ -f "${defaultConfFilePath}" ]; then
+    mv ${defaultConfFilePath} ${defaultContFilePath}.old
+  fi
+  echo "Writing new default.conf"
+cat << EOF > ${defaultConfFilePath}
+server {
+    listen 8080;
+
+    location /traefik {
+        add_header Content-Type "default_type text/plain";
+        if (\$inIPList = 1) {
+            return ${filterStatusCode};
+        }
+        return ${defaultStatusCode};
+    }
+}
+EOF
+}
+
 insertLocationList() {
   sed -i "1s/^/\n/" ${ipListFilePath}
   if ! [ -z "$subAdded" ]; then
@@ -234,6 +254,20 @@ if [ -z "$maxMindLicenceKey" ]; then
   exit 1
 fi
 
+if [ -z "$filterType" ]; then
+  echo "ERROR: The FILTER_TYPE environment variable is empty, exiting script."
+  exit 1
+elif [ "$filterType" = allow ]; then
+  filterStatusCode="200"
+  defaultStatusCode="404" 
+elif [ "$filterType" = block ]; then
+  filterStatusCode="404"
+  defaultStatusCode="200"
+else
+  echo "ERROR: The value of FILTER_TYPE environment variable should be 'allow' or 'block'."
+  exit 1
+fi
+
 if ! [ -z "$countryCodes" ]; then
   codesArray[0]=0
 else
@@ -250,6 +284,7 @@ fi
 if [ ${#codesArray[@]} -gt 0 ]; then
   updateGeoIPDatabase "${codesArray[@]}"
   writeIpList
+  writeDefaultConf
   insertLocationList
   echo "${ipListFilename} completed."
 else
