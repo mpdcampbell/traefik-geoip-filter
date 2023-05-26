@@ -1,13 +1,14 @@
 services:
     geoipfilter:
-      image: traefik-geo-ipwhitelist
-      container_name: geoipwhitelist
+      image: traefik-geoip-filter
+      container_name: geoipfilter
       volumes:
        - ${TRAEFIK_PROVIDER_DIR}:/rules
        - ${LOCAL_DIR}:/geoip
       environment:
         - MAXMIND_KEY=${MAXMIND_KEY}
+        - FILTER_TYPE
         - COUNTRY_CODES=${COUNTRY_CODES}
         - SUB_CODES=${SUB_CODES}
-        - CRON_EXPRESSION=*/2 * * * *
+       # - CRON_EXPRESSION= */2 * * * *
         - TZ=${TZ}

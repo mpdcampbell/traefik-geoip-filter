@@ -1,6 +1,8 @@
 #!/bin/bash
 
-echo  "${CRON_EXPRESSION}" /opt/scripts/geo-ipwhitelist.sh >> crontab
+echo  "${CRON_EXPRESSION}" /opt/scripts/geoip-filter.sh >> crontab
 crontab crontab
-./opt/scripts/geo-ipwhitelist.sh 2
+./opt/scripts/geoip-filter.sh 2
 crond -f -l 2
+
+exit 0;
