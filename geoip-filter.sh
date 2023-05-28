@@ -3,14 +3,16 @@
 #VARIABLES
 ################
 
-countryCodes=($COUNTRY_CODES)
-subCodes=($SUB_CODES)
 maxMindLicenceKey=${MAXMIND_KEY}
 filterType="${FILTER_TYPE,,}"
+countryCodes=($COUNTRY_CODES)
+subCodes=($SUB_CODES)
 ipListFilename=${IPLIST_FILENAME:-"IPList.conf"}
-lastModifiedFilename=${LASTMODIFIED_FILENAME:-"LastModified.txt"}
 ipListFilePath="/etc/nginx/conf.d/${ipListFilename}"
 defaultConfFilePath="/etc/nginx/conf.d/default.conf"
+comparedIPVariable=${COMPARED_IP_VARIABLE:-"http_x_forwarded_for"}
+listenPort=${LISTEN_PORT:-"8080"}
+lastModifiedFilename=${LASTMODIFIED_FILENAME:-"LastModified.txt"}
 lastModifiedDir=${LASTMODIFIED_DIR:-"/geoip"}
 lastModifiedFilePath="${lastModifiedDir}/${lastModifiedFilename}"
 countryDir=${COUNTRY_DIR:-"${lastModifiedDir}/country"}
@@ -179,7 +181,7 @@ startIpListFile() {
   fi
   echo "Writing new ${ipListFilename}"
 cat << EOF > ${ipListFilePath}
-geo \$http_x_forwarded_for \$inIPList {
+geo \$${comparedIPVariable} \$inIPList {
     default 0;
 
 EOF
@@ -198,7 +200,7 @@ writeDefaultConf() {
   echo "Writing new default.conf"
 cat << EOF > ${defaultConfFilePath}
 server {
-    listen 8080;
+    listen ${listenPort};
 
     location /traefik {
         add_header Content-Type "default_type text/plain";
