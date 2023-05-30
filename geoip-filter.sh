@@ -269,7 +269,7 @@ elif [ "$filterType" = block ]; then
   filterStatusCode="${blockStatusCode}"
   defaultStatusCode="${allowStatusCode}"
 else
-  echo "ERROR: The value of FILTER_TYPE environment variable should be 'allow' or 'block'."
+  echo "ERROR: The value of FILTER_TYPE environment variable should be 'allow' or 'block', exiting script."
   exit 1
 fi
 
