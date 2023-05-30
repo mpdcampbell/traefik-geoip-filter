@@ -7,6 +7,8 @@ maxMindLicenceKey=${MAXMIND_KEY}
 filterType="${FILTER_TYPE,,}"
 countryCodes=($COUNTRY_CODES)
 subCodes=($SUB_CODES)
+allowStatusCode=${ALLOW_STATUS_CODE:-"200"}
+blockStatusCode=${BLOCK_STATUS_CODE:-"404"}
 ipListFilename=${IPLIST_FILENAME:-"IPList.conf"}
 ipListFilePath="/etc/nginx/conf.d/${ipListFilename}"
 defaultConfFilePath="/etc/nginx/conf.d/default.conf"
@@ -172,6 +174,7 @@ writeIpList() {
   startIpListFile
   country_loop "${countryCodes[@]}"
   sub_loop "${subCodes[@]}"
+
   endIpListFile
 }
 
@@ -260,11 +263,11 @@ if [ -z "$filterType" ]; then
   echo "ERROR: The FILTER_TYPE environment variable is empty, exiting script."
   exit 1
 elif [ "$filterType" = allow ]; then
-  filterStatusCode="200"
-  defaultStatusCode="404" 
+  filterStatusCode="${allowStatusCode}"
+  defaultStatusCode="${blockStatusCode}" 
 elif [ "$filterType" = block ]; then
-  filterStatusCode="404"
-  defaultStatusCode="200"
+  filterStatusCode="${blockStatusCode}"
+  defaultStatusCode="${allowStatusCode}"
 else
   echo "ERROR: The value of FILTER_TYPE environment variable should be 'allow' or 'block'."
   exit 1
@@ -290,7 +293,7 @@ if [ ${#codesArray[@]} -gt 0 ]; then
   insertLocationList
   echo "${ipListFilename} completed."
 else
-  echo "Both COUNTRY_CODES and SUB_CODES environment variables are empty."
+  echo "Both the COUNTRY_CODES and SUB_CODES environment variables are empty."
   echo "  No GeoIP locations available to filter."
   echo "  Exiting script."
   exit 1
