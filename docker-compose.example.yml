@@ -18,7 +18,7 @@ services:
     geoipfilter:
       image: mpdcampbell/traefik-geoip-filter
       container_name: geoipfilter
-    #Optional, If you want the Geolite2 databases to persist
+    #Optional, If you want the Geolite2 databases to persist add the below volume
      #volumes:
        #- /path/to/local/directory:/geoip
       environment:
