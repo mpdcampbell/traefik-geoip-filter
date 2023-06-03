@@ -1,0 +1,34 @@
+# Define the geoip filter middleware along with your Traefik service config, so that other services can use the filter
+# To do this add the below label to the Traefik service
+#
+#      labels:
+#        - "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
+# 
+# Here "middlewares-geoipfilter" is the middleware name, "geoipfilter" is the name of the geoip filter container, and "8080" is the listen port value.
+# If you use different names or port, you need to change the example.
+#
+# Then, to apply the geoipfilter middleware to a service, add the below label to that service.
+#
+#       labels:
+#         - "traefik.http.routers.routerName.middlewares=middlewares-geoipfilter"
+#
+# Here "routerName" is the name of the router the filter is being applied to, and "middlewares-geoipfilter" is the middleware name. 
+
+services:
+    geoipfilter:
+      image: mpdcampbell/traefik-geoip-filter
+      container_name: geoipfilter
+    #Optional, If you want the Geolite2 databases to persist add the below volume
+     #volumes:
+       #- /path/to/local/directory:/geoip
+      environment:
+        - MAXMIND_KEY="yourKeyhere"
+    #Set the filter to act as an allowlist or blocklist
+        - FILTER_TYPE="allow"
+    #Use ISO 3166-1 or 3166-2 codes (recommended), or place names with spaces replaced by dashes.
+        - COUNTRY_CODES=FR New-Zealand
+        - SUB_CODES=VN-43 West-Virginia:Dallas
+    #Optional, Overwrites the default cron schedule
+       #- CRON_EXPRESSION=5 1 * * MON-FRI
+    #Optional, Sets timezone used for cron, default UTC
+       #- TZ
