@@ -1,4 +1,4 @@
-# [<img alt="alt_text" width="50px" src="https://www.codeslikeaduck.com/img/codeDuck.svg" />](https://www.codeslikeaduck.com/)  traefik-geo-ipwhitelist <br> [![License](https://img.shields.io/badge/license-BSD%202--Clause-blue)](https://github.com/mpdcampbell/traefik-geoip-filter/blob/main/LICENSE) [![Docker Pulls](https://img.shields.io/docker/pulls/mpdcampbell/traefik-geoip-filter?color=red)](https://hub.docker.com/r/mpdcampbell/traefik-geoip-filter)
+# [<img alt="alt_text" width="50px" src="https://www.codeslikeaduck.com/img/codeDuck.svg" />](https://www.codeslikeaduck.com/)  traefik-geoip-filter <br> [![License](https://img.shields.io/badge/license-BSD%202--Clause-blue)](https://github.com/mpdcampbell/traefik-geoip-filter/blob/main/LICENSE) [![Docker Pulls](https://img.shields.io/docker/pulls/mpdcampbell/traefik-geoip-filter?color=red)](https://hub.docker.com/r/mpdcampbell/traefik-geoip-filter)
 
 A Docker container that works as a GeoIP allow/blocklist middleware for Traefik.</br>
 Uses the Maxmind GeoLite2 database and so requires a free [MaxMind account](https://www.maxmind.com/en/geolite2/signup) to work.</br>
@@ -10,7 +10,7 @@ _____
 - Make a free MaxMind account to get a license key.  
 - Download [docker-compose.example.yml](/docker-compose.example.yml) and add the lines to your traefik config as instructed.  
 - Replace the dummy key in the example.  
-- Replace the location variables, countries go in COUNTRY_CODES, locations smaller than countries go in SUB_CODES.  
+- Replace the location variables: countries go in COUNTRY_CODES, locations smaller than countries go in SUB_CODES.  
 - Start up the container with ``docker-compose -f docker-compose.example.yml up -d``
 - Check the logs with ``docker logs -tf geoipfilter`` to confirm it's working.
 _____
@@ -21,6 +21,7 @@ _____
 - [Environment variables](#environment-variables)
 - [Formatting ISO 3166 codes and place names](#formatting-iso-3166-codes-and-place-names)
 - [Default cron schedule](#default-cron-schedule)
+- [Acknowledgements](#acknowledgements)
 - [License](#license)
 
 ## How does it work?
@@ -35,27 +36,27 @@ When downloading the databases the last-modified datetime is queried and saved. 
 
 | Variable           | What it is                            | Example Value          |
 | ------------------ | ------------------------------------- |------------------------|
-| MAXMIND_KEY        | Your MaxMind license key              | stringHere           |
-| FILTER_TYPE        | Set the filter as an allow or blocklist| allow               |
-| COUNTRY_CODES      | List of countries you want to allow/block IPs from. <br> See [formatting](#country_codes) for more details.| FR New-Zealand |
-| SUB_CODES | List of locations smaller than a country that you want to allow/block IPs from. <br> See [formatting](#sub_codes) for more details.|VN-43 West-Virginia:Dallas |
+| MAXMIND_KEY        | Your MaxMind license key              | ``stringOfGibberish``           |
+| FILTER_TYPE        | Set the filter as an allow or blocklist| ``allow``               |
+| COUNTRY_CODES      | List of countries you want to allow/block IPs from. <br> See [formatting](#country_codes) for more details.| ``FR New-Zealand`` |
+| SUB_CODES | List of locations smaller than a country that you want to allow/block IPs from. <br> See [formatting](#sub_codes) for more details.|``VN-43 West-Virginia:Dallas`` |
 
 ### Optional Variables
 
 | Variable             | What it is                                                                                | Example Value           |
 | ---------------------| ----------------------------------------------------------------------------------------- |-------------------------|
-| ALLOW_STATUS_CODE    | The status code returned when IP address is allowed to access container. </br> Default value ```200```| 201                     |
-| BLOCK_STATUS_CODE    | The status code returned when IP address is blocked. </br> Default value ```404```                    | 403                     |
-| COMPARED_IP_VARIABLE | The [variable](https://nginx.org/en/docs/http/ngx_http_core_module.html#variables) that the Nginx webserver compares to the filter list. </br> Default value http_x_forwarded_for| http_forwarded |
-| LISTEN_PORT          | The port the Nginx webserver listens on. </br>Default value ```8080```                                        | 1234                    |
-| CRON_EXPRESSION      | Overwrites the default cron schedule of ```0 6 * * wed,sat```                             | 5 1 * * MON-FRI         |
-| TZ                   | Sets the timezone inside the container, used by cron.</br>Default value UTC                  | EDT                     |
-| CRON_LOG_PATH        | The filepath that the container that the cron log is written to.</br> Default value /var/log/cron.log | /path/filename |
-| TRAEFIK_PROVIDER_DIR | The directory inside the container that the middleware file is written to.</br>Default value /rules| /path/foldername      |
-| LASTMODIFIED_DIR     | The directory inside the container that the GeoLite2 databases and date last updated timestamps are saved to by default. </br>Default value /geoip| /path/foldername|
-| COUNTRY_DIR | The directory inside the container that the country database file is saved to.</br>Default value LASTMODIFIED_DIR/country| /path/foldername      |
-| SUB_DIR | The directory inside the container that the subdivision database file is saved to.</br>Default value LASTMODIFIED_DIR/sub| /path/foldername      |
-| IPLIST_FILENAME | The filename of the configuration file containing the filter list. </br> Default value IPList.conf | filename.conf |
+| ALLOW_STATUS_CODE    | The status code returned when IP address is allowed to access container. </br> Default value ```200```| ``201``                     |
+| BLOCK_STATUS_CODE    | The status code returned when IP address is blocked. </br> Default value ```404```                    | ``403``                     |
+| COMPARED_IP_VARIABLE | The [variable](https://nginx.org/en/docs/http/ngx_http_core_module.html#variables) that the Nginx webserver compares to the filter list. </br> Default value ``http_x_forwarded_for``| ``http_forwarded`` |
+| LISTEN_PORT          | The port the Nginx webserver listens on. </br>Default value ```8080```                                        | ``1234``                    |
+| CRON_EXPRESSION      | Overwrites the default cron schedule of ```0 6 * * wed,sat```                             | ```5 1 * * MON-FRI```         |
+| TZ                   | Sets the timezone inside the container, used by cron.</br>Default value ``UTC``                  | `EDT`                     |
+| CRON_LOG_PATH        | The filepath that the container that the cron log is written to.</br> Default value ``/var/log/cron.log`` | `/path/filename` |
+| TRAEFIK_PROVIDER_DIR | The directory inside the container that the middleware file is written to.</br>Default value ``/rules``| `/path/foldername`      |
+| LASTMODIFIED_DIR     | The directory inside the container that the GeoLite2 databases and date last updated timestamps are saved to by default. </br>Default value `/geoip`| `/path/foldername` |
+| COUNTRY_DIR | The directory inside the container that the country database file is saved to.</br>Default value `LASTMODIFIED_DIR/country`| `/path/foldername`      |
+| SUB_DIR | The directory inside the container that the subdivision database file is saved to.</br>Default value `LASTMODIFIED_DIR/sub`| `/path/foldername`      |
+| IPLIST_FILENAME | The filename of the configuration file containing the filter list. </br> Default value `IPList.conf` | `filename.conf` |
 <br>
 
 ## Formatting ISO 3166 codes and place names
@@ -69,8 +70,7 @@ When downloading the databases the last-modified datetime is queried and saved. 
 ### SUB_CODES
 **Note: There is no guarantee the sublocation you wish to limit access to is listed in the GeoLite2 database.**<br>
 <br>
-Accepts [ISO-3166-2 codes](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes) but the GeoLite database also lists IP address by smaller areas. For example in the United States the ISO-3166-2 codes represent states, when you might want to limit access to a given city or town. For this reason the variable also accepts place names, however they should always be qualified with the larger region. 
-<br>Take Berlin as an example: 29 locations in the GeoLite2 database have Berlin in their name including towns in Russia, Uruguay, Colombia, and the United States. To narrow this down, the SUB_CODES variable accepts place names in the form ```Larger-Region:Location```.<br>
+Accepts [ISO-3166-2 codes](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes) but the GeoLite database also lists IP address by smaller areas. For example in the United States the ISO-3166-2 codes represent states, when you might want to limit access to a given city or town. For this reason the variable also accepts place names, however they should always be qualified with the larger region. <br></br>Take Berlin as an example: </br>29 locations in the GeoLite2 database have Berlin in their name including towns in Russia, Uruguay, Colombia, and the United States. To narrow this down, the SUB_CODES variable accepts place names in the form ```Larger-Region:Location```.<br>
 <br>
 For example:<br>
 ```United-States:Berlin``` - This will match all the listed towns in the United States named Berlin.<br>
@@ -88,6 +88,10 @@ Also, the same format rules as for COUNTRY_CODES apply:
 By default the container adds a cron job to run the script at 6 AM UTC on Wednesdays and Saturdays. This is because the MaxMind Geolite 2 country and city databases update every [Tuesday and Friday.](https://support.maxmind.com/hc/en-us/articles/4408216129947) If you want to change the schedule you can define your own [cron expression](https://crontab.cronhub.io/) in the CRON_EXPRESSION environment variable, which will overwrite the default schedule. The cron job will run with the default timezone, UTC, but you can change this with the TZ environment variable.<br>
 <br>
 The free MaxMind account has a daily limit of 2,000 database downloads but the script first runs a HEAD request, to check if the last-modified header has changed, which doesn't count towards this limit. The script should only download the database if the last-modified is more recent than the last-modified time for the local database copies.
+
+## Acknowledgements
+The idea to use Nginx as an authentication server came from [this blog post](https://scaleup.us/2020/06/21/how-to-block-ips-in-your-traefik-proxy-server/), by Okzz.
+<br>This repository is effectively that idea plus a bash script, to parse and update the Maxmind database, wrapped up in a Docker image.
 
 ## License
 
