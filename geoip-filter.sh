@@ -66,19 +66,49 @@ sub_getLastModified() {
   sub_getRemoteLastModified
 } 
 
-country_getZip() {
+country_isDatabaseMissing() {
+  if ! [[ (-s ${countryDir}/countryList.txt) && (-s ${countryDir}/globalIPList.txt) ]]; then
+    echo "Local GeoLite2 Country database is missing or empty."
+    return 0
+  else
+    return 1
+  fi
+}
+
+country_isDatabaseOutOfDate() {
   remoteSeconds=$(date -d "$remoteLastModified" -D "%a, %d %b %Y %T" +'%s')
   countrySeconds=$(date -d "$countryLastModified" -D "%a, %d %b %Y %T" +'%s')
   if ! [[ ${remoteSeconds} -gt ${countrySeconds} ]]; then
-    echo "Not downloading GeoLite2 Country database as local copy is up to date."
-    echo "  Remote GeoLite2 Country database was last updated on ${remoteLastModified}." 
-    echo "  Local GeoLite2 Country database version is dated ${countryLastModified}."
-    echo "  If you wish to force fresh download delete country${lastModifiedFilename} and run again."
+    return 1
+  else
+    return 0
+  fi
+}
+
+sub_isDatabaseMissing() {
+  if ! [[ (-s ${subDir}/subList.txt) && (-s ${subDir}/globalIPList.txt) ]]; then
+    echo "Local GeoLite2 City database is missing or empty."
     return 0
   else
+    return 1
+  fi
+}
+
+sub_isDatabaseOutOfDate() {
+  remoteSeconds=$(date -d "$remoteLastModified" -D "%a, %d %b %Y %T" +'%s')
+  subSeconds=$(date -d "$subLastModified" -D "%a, %d %b %Y %T" +'%s')
+  if ! [[ ${remoteSeconds} -gt ${subSeconds} ]]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+country_getZip() {
+  if (country_isDatabaseMissing || country_isDatabaseOutOfDate) ; then
     echo "Downloading latest Geolite2 Country database."
     mkdir -p ${countryDir}
-    curl -LsS -z "${countryLastModified}" "${countryUrl}" --output "${countryDir}/country.zip"
+    curl -LsS "${countryUrl}" --output "${countryDir}/country.zip"
     if grep -q "Invalid license key" ${countryDir}/country.zip ; then
       echo "ERROR: MaxMind license key is invalid."
       rm ${countryDir}/country.zip
@@ -87,30 +117,32 @@ country_getZip() {
       echo "${remoteLastModified}" > "${lastModifiedDir}/country${lastModifiedFilename}"
       country_unzipAndExtract
     fi
+  else
+    echo "Not downloading GeoLite2 Country database as local copy is up to date."
+    echo "  Remote GeoLite2 Country database was last updated on ${remoteLastModified}." 
+    echo "  Local GeoLite2 Country database version is dated ${countryLastModified}."
+    echo "  If you wish to force fresh download delete country${lastModifiedFilename} and run again."
   fi
 }
 
 sub_getZip() {
-  remoteSeconds=$(date -d "$remoteLastModified" -D "%a, %d %b %Y %T" +'%s')
-  subSeconds=$(date -d "$subLastModified" -D "%a, %d %b %Y %T" +'%s')
-  if ! [[ ${remoteSeconds} -gt ${subSeconds} ]]; then
-    echo "Not downloading GeoLite2 City database as local copy is up to date."
-    echo "  Remote GeoLite2 City database was last updated on ${remoteLastModified}." 
-    echo "  Local GeoLite2 City database version is dated ${subLastModified}."
-    echo "  If you wish to force fresh download delete sub${lastModifiedFilename} and run again."
-    return 0
-  else
-    echo "Downloading latest GeoLite2 City database."
+  if (sub_isDatabaseMissing || sub_isDatabaseOutOfDate) ; then
+    echo "Downloading latest Geolite2 sub database."
     mkdir -p ${subDir}
-    curl -LsS -z "${subLastModified}" "${subUrl}" --output "${subDir}/sub.zip"
+    curl -LsS "${subUrl}" --output "${subDir}/sub.zip"
     if grep -q "Invalid license key" ${subDir}/sub.zip ; then
       echo "ERROR: MaxMind license key is invalid."
-      rm sub.zip
-      exit 1
+      rm ${subDir}/sub.zip
+      return 1
     else
       echo "${remoteLastModified}" > "${lastModifiedDir}/sub${lastModifiedFilename}"
       sub_unzipAndExtract
     fi
+  else
+    echo "Not downloading GeoLite2 City database as local copy is up to date."
+    echo "  Remote GeoLite2 City database was last updated on ${remoteLastModified}." 
+    echo "  Local GeoLite2 City database version is dated ${subLastModified}."
+    echo "  If you wish to force fresh download delete sub${lastModifiedFilename} and run again."
   fi
 }
 
