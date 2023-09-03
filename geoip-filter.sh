@@ -75,6 +75,15 @@ country_isDatabaseMissing() {
   fi
 }
 
+sub_isDatabaseMissing() {
+  if ! [[ (-s ${subDir}/subList.txt) && (-s ${subDir}/globalIPList.txt) ]]; then
+    echo "Local GeoLite2 City database is missing or empty."
+    return 0
+  else
+    return 1
+  fi
+}
+
 country_isDatabaseOutOfDate() {
   remoteSeconds=$(date -d "$remoteLastModified" -D "%a, %d %b %Y %T" +'%s')
   countrySeconds=$(date -d "$countryLastModified" -D "%a, %d %b %Y %T" +'%s')
@@ -82,15 +91,6 @@ country_isDatabaseOutOfDate() {
     return 1
   else
     return 0
-  fi
-}
-
-sub_isDatabaseMissing() {
-  if ! [[ (-s ${subDir}/subList.txt) && (-s ${subDir}/globalIPList.txt) ]]; then
-    echo "Local GeoLite2 City database is missing or empty."
-    return 0
-  else
-    return 1
   fi
 }
 
@@ -202,12 +202,14 @@ sub_addIPsToIPList() {
   fi
 }
 
-writeIpList() {
-  startIpListFile
-  country_loop "${countryCodes[@]}"
-  sub_loop "${subCodes[@]}"
+getLastModifiedArray=(country_getLastModified sub_getLastModified)
+getZipArray=(country_getZip sub_getZip)
 
-  endIpListFile
+updateGeoIPDatabase () {
+  for index in "$@"; do 
+    ${getLastModifiedArray[index]}
+    ${getZipArray[index]}
+  done
 }
 
 startIpListFile() {
@@ -222,10 +224,29 @@ geo \$${comparedIPVariable} \$inIPList {
 EOF
 }
 
+country_loop () {
+  for code in "$@"; do
+    country_addIPsToIPList $code
+  done
+}
+
+sub_loop () {
+  for code in "$@"; do
+    sub_addIPsToIPList $code
+  done
+}
+
 endIpListFile() {
 cat << EOF >> ${ipListFilePath}
 }    
 EOF
+}
+
+writeIpList() {
+  startIpListFile
+  country_loop "${countryCodes[@]}"
+  sub_loop "${subCodes[@]}"
+  endIpListFile
 }
 
 writeDefaultConf() {
@@ -258,28 +279,6 @@ insertLocationList() {
     countryString=$(echo "${countryAdded[@]}")
     sed -i "1s/^/#Listed Countries: ${countryString}\n/" ${ipListFilePath}
   fi
-}
-
-getLastModifiedArray=(country_getLastModified sub_getLastModified)
-getZipArray=(country_getZip sub_getZip)
-
-country_loop () {
-  for code in "$@"; do
-    country_addIPsToIPList $code
-  done
-}
-
-sub_loop () {
-  for code in "$@"; do
-    sub_addIPsToIPList $code
-  done
-}
-
-updateGeoIPDatabase () {
-  for index in "$@"; do 
-    ${getLastModifiedArray[index]}
-    ${getZipArray[index]}
-  done
 }
 
 #MAIN
