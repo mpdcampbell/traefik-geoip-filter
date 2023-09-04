@@ -32,3 +32,5 @@ services:
        #- CRON_EXPRESSION=5 1 * * MON-FRI
     #Optional, Sets timezone used for cron, default UTC
        #- TZ
+    #Optional, Don't set up IP filter, instead list all matches for the country_codes and sub_codes values in the GeoLite2 database
+       #- SEARCH_MODE="true"

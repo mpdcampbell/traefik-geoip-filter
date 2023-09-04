@@ -20,6 +20,7 @@ _____
 - [How does it work?](#how-does-it-work)
 - [Environment variables](#environment-variables)
 - [Formatting ISO 3166 codes and place names](#formatting-iso-3166-codes-and-place-names)
+- [Searching the GeoLite2 database](#searching-the-geolite2-database)
 - [Default cron schedule](#default-cron-schedule)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
@@ -45,6 +46,7 @@ When downloading the databases the last-modified datetime is queried and saved. 
 
 | Variable             | What it is                                                                                | Example Value           |
 | ---------------------| ----------------------------------------------------------------------------------------- |-------------------------|
+| SEARCH_MODE          | Don't set up IP filter, instead list all matches for the country_codes and sub_codes values in the local database. </br> Default value ```false```| ``true``                     |
 | ALLOW_STATUS_CODE    | The status code returned when IP address is allowed to access container. </br> Default value ```200```| ``201``                     |
 | BLOCK_STATUS_CODE    | The status code returned when IP address is blocked. </br> Default value ```404```                    | ``403``                     |
 | COMPARED_IP_VARIABLE | The [variable](https://nginx.org/en/docs/http/ngx_http_core_module.html#variables) that the Nginx webserver compares to the filter list. </br> Default value ``http_x_forwarded_for``| ``http_forwarded`` |
@@ -68,7 +70,7 @@ When downloading the databases the last-modified datetime is queried and saved. 
 - The list is case insensitive.<br>
 
 ### SUB_CODES
-**Note: There is no guarantee the sublocation you wish to limit access to is listed in the GeoLite2 database.**<br>
+**Note: There is no guarantee the sublocation you wish to limit access to is listed in the GeoLite2 database. You can check using the [search script](#searching-the-geolite2-database).**<br>
 <br>
 Accepts [ISO-3166-2 codes](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes) but the GeoLite database also lists IP address by smaller areas. For example in the United States the ISO-3166-2 codes represent states, when you might want to limit access to a given city or town. For this reason the variable also accepts place names, however they should always be qualified with the larger region. <br></br>Take Berlin as an example: </br>29 locations in the GeoLite2 database have Berlin in their name including towns in Russia, Uruguay, Colombia, and the United States. To narrow this down, the SUB_CODES variable accepts place names in the form ```Larger-Region:Location```.<br>
 <br>
@@ -76,13 +78,41 @@ For example:<br>
 ```United-States:Berlin``` - This will match all the listed towns in the United States named Berlin.<br>
 ```Wisconsin:Berlin``` - This will match the listed towns in Wisconsin named Berlin.<br>
 ```Wisconsin:New-Berlin``` - This will match the town New Berlin in Wisconsin, which wasn't in the previous example.<br> 
-Please note that obviously all towns and regions in the world are not in the database. Also regional spelling can vary. In general using place names is much more hit-or-miss than using ISO codes. You can check what locations are listed by having a grep in the subList.txt file inside SUB_DIR.<br>
+Please note that obviously all towns and regions in the world are not in the database. Also regional spelling can vary. In general using place names is much more hit-or-miss than using ISO codes. You can check what locations a place name will match by using the [search functionality](#searching-the-geolite2-database) <br>
 <br>
 Also, the same format rules as for COUNTRY_CODES apply:
 - Seperate elements in the list with a space.<br>
 - If a place name contains spaces (i.e. New Berlin) replace the spaces with a dash (i.e. New-Berlin)<br>
 - Don't use quotation marks.<br>
 - The list is case insensitive.<br>
+
+## Searching the GeoLite2 database
+As shown above with "Berlin" matching locations across the world, a place name might have more matches than you expected. There are two ways you can check what locations the COUNTRY_CODES and SUB_CODES values will match:
+### SEARCH_MODE
+Set the value of the environment variable SEARCH_MODE to "true". Now when the container starts up, instead of creating the GeoIP filter, it will list all location matches in the docker logs and then stop. You can view the logs of the stopped container using the below command:
+```
+docker logs geoipfilter
+```
+
+### Run search.sh directly
+The script used by SEARCH_MODE is inside the container at its root path, /search.sh. If the container is up and running, you can exec in and manually call the script. Use this command to open a terminal inside the geoipfilter container:
+```
+docker exec -it geoipfilter /bin/bash
+```
+The script takes three flags, -n, -c and -s, explained below.
+```
+Usage: search.sh [-c -s -n]
+  -c  A space separated array of country_code terms to search for in GeoLite2 database.
+      e.g. -c "US New-Zealand France"
+  -s  A space separated array of sub_code terms to search for in GeoLite2 database.
+      e.g. -n "VN-43 West-Virginia:Dallas Berlin"
+  -n  Script will only display the number of matches for each value, default behaviour lists every matching location.
+  -h  Show usage.
+```
+So for example run the script with:
+```
+./search.sh -c "france US" -s "VN-43 Germany:Berlin"
+```
 
 ## Default cron schedule
 By default the container adds a cron job to run the script at 6 AM UTC on Wednesdays and Saturdays. This is because the MaxMind Geolite 2 country and city databases update every [Tuesday and Friday.](https://support.maxmind.com/hc/en-us/articles/4408216129947) If you want to change the schedule you can define your own [cron expression](https://crontab.cronhub.io/) in the CRON_EXPRESSION environment variable, which will overwrite the default schedule. The cron job will run with the default timezone, UTC, but you can change this with the TZ environment variable.<br>
