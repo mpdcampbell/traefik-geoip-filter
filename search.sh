@@ -41,7 +41,7 @@ fi
 if ! [ -z "$countryCodes" ]; then
   for code in "${countryCodes[@]}"; do
     if [ $numberOnly == "false" ]; then
-      echo "";
+      echo ""
     fi
     placeName=$( grep -hwiF "$code" ${countryDir}/countryList.txt | cut -d, -f2-3 )
     if [ -z "${placeName}" ]; then

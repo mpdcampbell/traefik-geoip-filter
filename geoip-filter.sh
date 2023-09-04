@@ -7,6 +7,7 @@ maxMindLicenceKey=${MAXMIND_KEY}
 filterType="${FILTER_TYPE,,}"
 countryCodes=($COUNTRY_CODES)
 subCodes=($SUB_CODES)
+searchMode="${SEARCH_MODE,,:-"false"}"
 allowStatusCode=${ALLOW_STATUS_CODE:-"200"}
 blockStatusCode=${BLOCK_STATUS_CODE:-"404"}
 ipListFilename=${IPLIST_FILENAME:-"IPList.conf"}
@@ -319,10 +320,18 @@ fi
 
 if [ ${#codesArray[@]} -gt 0 ]; then
   updateGeoIPDatabase "${codesArray[@]}"
-  writeIpList
-  writeDefaultConf
-  insertLocationList
-  echo "${ipListFilename} completed."
+  if [ "$searchMode" == "true" ]; then
+    echo "--------------------------------------"
+    echo "Search mode: Not setting up IP filter, just checking for matches in GeoLite2 database."
+    ./search.sh -c "${COUNTRY_CODES}" -s "${SUB_CODES}"
+    echo "Exiting script."
+    exit 1
+  else
+    writeIpList
+    writeDefaultConf
+    insertLocationList
+    echo "${ipListFilename} completed."
+  fi
 else
   echo "Both the COUNTRY_CODES and SUB_CODES environment variables are empty."
   echo "  No GeoIP locations available to filter."
