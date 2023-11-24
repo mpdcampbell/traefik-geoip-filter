@@ -1,7 +1,7 @@
 name: If dependabot updates dockerfile then update image
 
 on:
-  pull_request_target:
+  pull_request:
     types:
       - closed
     branches:
@@ -11,7 +11,9 @@ on:
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true
+    if: |
+      github.event.pull_request.merged &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
