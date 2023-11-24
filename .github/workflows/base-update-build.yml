@@ -1,37 +1,45 @@
-name: If dependabot updates dockerfile then update image
+name: Depandabot updated Dockerfile then update image
 
 on:
-  pull_request_target:
+  pull_request:
     types:
       - closed
     branches:
       - 'develop'
-    paths:
-      - 'Dockerfile'
 
 jobs:
   build:
-    if: |
-      github.event.pull_request.merged &&
-      github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    name: Test changed-files
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-       
-      - name: Log in to Docker Hub
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed Dockerfile
+        id: changed-files-specific
+        uses: tj-actions/changed-files@v13.1
+        with:
+          files: |
+            Dockerfile
+
+      - name: Log in to Docker Hub if dockerfile changed
+        if: steps.changed-files-specific.outputs.any_changed == "true"
         uses: docker/login-action@v3
         with:
           username: "${{ secrets.DOCKERHUB_USERNAME }}"
           password: "${{ secrets.DOCKERHUB_PASSWORD }}"
 
       - name: Get Previous tag
+        if: steps.changed-files-specific.outputs.any_changed == "true"
         id: previoustag
         uses: "WyriHaximus/github-action-get-previous-tag@v1"
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Build and push Docker image
+        if: steps.changed-files-specific.outputs.any_changed == "true"
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
