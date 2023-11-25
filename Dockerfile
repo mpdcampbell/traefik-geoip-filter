@@ -7,4 +7,3 @@ ARG CRON_EXPRESSION
 ENV CRON_EXPRESSION=${CRON_EXPRESSION:-"0 6 * * wed,sat"}
 ARG CRON_LOG_PATH
 ENV CRON_LOG_PATH=${CRON_LOG_PATH:-"/var/log/cron.log"}
-#Comment to trigger github actions
