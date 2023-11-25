@@ -1,4 +1,4 @@
-name: Dependabot PR approve and merge
+name: Approve merge build tag push
 
 on: pull_request_target
 
@@ -66,13 +66,16 @@ jobs:
         with:
           version: ${{ steps.previoustag.outputs.tag }}
       
-      - name: 'Create new milestone'
-        id: createmilestone
-        uses: "WyriHaximus/github-action-create-milestone@v1"
+      - name: Create tag
+        uses: actions/github-script@v6
         with:
-          title: ${{ steps.semvers.outputs.patch }}
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ steps.semvers.outputs.patch }}',
+              sha: context.sha
+            })
 
       - name: Build and push Docker image
         if: steps.changed-files-specific.outputs.any_changed == 'true'
