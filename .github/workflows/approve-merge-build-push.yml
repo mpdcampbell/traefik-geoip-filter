@@ -69,7 +69,7 @@ jobs:
       
       - name: Create tag
         if: steps.changed-files-specific.outputs.any_changed == 'true'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             github.rest.git.createRef({
