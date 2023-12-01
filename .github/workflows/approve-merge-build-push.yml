@@ -46,7 +46,7 @@ jobs:
           files: |
             Dockerfile
 
-      - name: Log in to Docker Hub if dockerfile changed
+      - name: Log in to Docker Hub
         if: steps.changed-files-specific.outputs.any_changed == 'true'
         uses: docker/login-action@v3
         with:
@@ -61,12 +61,14 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       
       - name: 'Get next minor version'
+        if: steps.changed-files-specific.outputs.any_changed == 'true'
         id: semvers
         uses: "WyriHaximus/github-action-next-semvers@v1"
         with:
           version: ${{ steps.previoustag.outputs.tag }}
       
       - name: Create tag
+        if: steps.changed-files-specific.outputs.any_changed == 'true'
         uses: actions/github-script@v6
         with:
           script: |
