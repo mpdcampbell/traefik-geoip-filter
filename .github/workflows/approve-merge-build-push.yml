@@ -41,7 +41,7 @@ jobs:
 
       - name: Get changed Dockerfile
         id: changed-files-specific
-        uses: tj-actions/changed-files@v40.2.2
+        uses: tj-actions/changed-files@v41.0.1
         with:
           files: |
             Dockerfile
