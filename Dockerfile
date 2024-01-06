@@ -1,5 +1,5 @@
 FROM nginx:1.25.3-alpine3.18
-RUN apk add --no-cache bash curl unzip tzdata 
+RUN apk add --no-cache bash curl>8.4.0-r0 unzip tzdata>2023c-r1 
 COPY geoip-filter.sh ./opt/scripts/geoip-filter.sh 
 COPY search.sh /search.sh
 COPY startUp.sh /docker-entrypoint.d/50-startUp.sh
