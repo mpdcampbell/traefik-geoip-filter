@@ -32,6 +32,7 @@ jobs:
     
   build-push-image:
     runs-on: ubuntu-22.04
+    needs: merge-dependabot-pr
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v4
