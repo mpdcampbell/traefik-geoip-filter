@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 jobs:
-  dependabot:
+  merge-dependabot-pr:
     runs-on: ubuntu-22.04
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
@@ -23,16 +23,15 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Enable auto-merge for Dependabot PRs
+      - name: Auto-merge non-major PRs
         if: ${{ steps.dependabot-metadata.outputs.update-type != 'version-update:semver-major' }}
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
-  build:
+  build-push-image:
     runs-on: ubuntu-22.04
-    name: Test changed-files
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v4
@@ -53,21 +52,21 @@ jobs:
           username: "${{ secrets.DOCKERHUB_USERNAME }}"
           password: "${{ secrets.DOCKERHUB_PASSWORD }}"
 
-      - name: Get Previous tag
+      - name: Get previous tag
         if: steps.changed-files-specific.outputs.any_changed == 'true'
         id: previoustag
         uses: "WyriHaximus/github-action-get-previous-tag@v1"
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       
-      - name: 'Get next minor version'
+      - name: Get next version tag
         if: steps.changed-files-specific.outputs.any_changed == 'true'
         id: semvers
         uses: "WyriHaximus/github-action-next-semvers@v1"
         with:
           version: ${{ steps.previoustag.outputs.tag }}
       
-      - name: Create tag
+      - name: Update tag
         if: steps.changed-files-specific.outputs.any_changed == 'true'
         uses: actions/github-script@v7
         with:
