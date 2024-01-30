@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "${CRON_EXPRESSION}" /opt/scripts/geoip-filter.sh '>>' "${CRON_LOG_PATH}" >> crontab
+echo "${CRON_EXPRESSION}" /opt/scripts/geoip-filter.sh '>>' "${CRON_LOG_PATH}" > crontab
 crontab crontab
 echo "--------------------------------------"
 echo "Running initial Maxmind database check"
