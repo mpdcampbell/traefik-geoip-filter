@@ -28,7 +28,7 @@ yearsOldDate="Sun, 07 Jan 1990 01:00:00 GMT"
 ############
 
 country_getRemoteLastModified() {
-  remoteResponse=$(curl -ISs "${countryUrl}")
+  remoteResponse=$(curl -LISs "${countryUrl}")
   statusCode=$(echo "$remoteResponse" | grep HTTP)
   remoteLastModified=$(echo "$remoteResponse" | grep last-modified: | sed 's/last-modified: //')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
@@ -38,7 +38,7 @@ country_getRemoteLastModified() {
 } 
 
 sub_getRemoteLastModified() {
-  remoteResponse=$(curl -ISs "${subUrl}")
+  remoteResponse=$(curl -LISs "${subUrl}")
   statusCode=$(echo "$remoteResponse" | grep HTTP)
   remoteLastModified=$(echo "$remoteResponse" | grep last-modified: | sed 's/last-modified: //')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
