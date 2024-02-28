@@ -3,6 +3,7 @@
 #VARIABLES
 ################
 
+maxMindAccountId=${MAXMIND_ID}
 maxMindLicenceKey=${MAXMIND_KEY}
 filterType="${FILTER_TYPE,,}"
 countryCodes=($COUNTRY_CODES)
@@ -20,17 +21,18 @@ lastModifiedDir=${LASTMODIFIED_DIR:-"/geoip"}
 lastModifiedFilePath="${lastModifiedDir}/${lastModifiedFilename}"
 countryDir=${COUNTRY_DIR:-"${lastModifiedDir}/country"}
 subDir=${SUB_DIR:-"${lastModifiedDir}/sub"}
-countryUrl="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=${maxMindLicenceKey}&suffix=zip"
-subUrl="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City-CSV&license_key=${maxMindLicenceKey}&suffix=zip"
+basicAuth="${maxMindAccountId}:${maxMindLicenceKey}"
+countryUrl="https://download.maxmind.com/geoip/databases/GeoLite2-Country-CSV/download?suffix=zip"
+subUrl="https://download.maxmind.com/geoip/databases/GeoLite2-City-CSV/download?suffix=zip"
 yearsOldDate="Sun, 07 Jan 1990 01:00:00 GMT"
 
 #FUNCTIONS
 ############
 
 country_getRemoteLastModified() {
-  remoteResponse=$(curl -LISs "${countryUrl}")
+  remoteResponse=$(curl -LISsu "${basicAuth}" "${countryUrl}")
   statusCode=$(echo "$remoteResponse" | grep HTTP)
-  remoteLastModified=$(echo "$remoteResponse" | grep last-modified: | sed 's/last-modified: //')
+  remoteLastModified=$(echo "$remoteResponse" | grep Last-Modified: | sed 's/Last-Modified: //')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
     echo "ERROR: The HEAD request on the GeoLite2 Country database failed with status code ${statusCode}"
     exit 1
@@ -38,9 +40,9 @@ country_getRemoteLastModified() {
 } 
 
 sub_getRemoteLastModified() {
-  remoteResponse=$(curl -LISs "${subUrl}")
+  remoteResponse=$(curl -LISsu "${basicAuth}" "${subUrl}")
   statusCode=$(echo "$remoteResponse" | grep HTTP)
-  remoteLastModified=$(echo "$remoteResponse" | grep last-modified: | sed 's/last-modified: //')
+  remoteLastModified=$(echo "$remoteResponse" | grep Last-Modified: | sed 's/Last-Modified: //')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
     echo "ERROR: The HEAD request on the GeoLite2 City database failed with status code ${statusCode}"
     exit 1
@@ -109,7 +111,7 @@ country_getZip() {
   if (country_isDatabaseMissing || country_isDatabaseOutOfDate) ; then
     echo "Downloading latest Geolite2 Country database."
     mkdir -p ${countryDir}
-    curl -LsS "${countryUrl}" --output "${countryDir}/country.zip"
+    curl -LSsu "${basicAuth}" "${countryUrl}" --output "${countryDir}/country.zip"
     if grep -q "Invalid license key" ${countryDir}/country.zip ; then
       echo "ERROR: MaxMind license key is invalid."
       rm ${countryDir}/country.zip
@@ -130,7 +132,7 @@ sub_getZip() {
   if (sub_isDatabaseMissing || sub_isDatabaseOutOfDate) ; then
     echo "Downloading latest Geolite2 sub database."
     mkdir -p ${subDir}
-    curl -LsS "${subUrl}" --output "${subDir}/sub.zip"
+    curl -LSsu "${basicAuth}" "${subUrl}" --output "${subDir}/sub.zip"
     if grep -q "Invalid license key" ${subDir}/sub.zip ; then
       echo "ERROR: MaxMind license key is invalid."
       rm ${subDir}/sub.zip
@@ -286,7 +288,10 @@ insertLocationList() {
 #################
 
 #Check mandatory variables
-if [ -z "$maxMindLicenceKey" ]; then
+if [ -z "$maxMindAccountId" ]; then
+  echo "ERROR: The MAXMIND_ID environment variable is empty, exiting script."
+  exit 1
+elif [ -z "$maxMindLicenceKey" ]; then
   echo "ERROR: The MAXMIND_KEY environment variable is empty, exiting script."
   exit 1
 fi
