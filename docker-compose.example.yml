@@ -22,6 +22,7 @@ services:
      #volumes:
        #- /path/to/local/directory:/geoip
       environment:
+        - MAXMIND_ID="yourIDhere"
         - MAXMIND_KEY="yourKeyhere"
     #Set the filter to act as an allowlist or blocklist
         - FILTER_TYPE="allow"

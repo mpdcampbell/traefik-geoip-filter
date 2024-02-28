@@ -7,9 +7,9 @@ Accepts [ISO 3166-1](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially
 </br>
 _____
 ### TL;DR: How do I use this?
-- Make a free MaxMind account to get a license key.  
+- Make a free MaxMind account to get an account ID and license key.  
 - Download [docker-compose.example.yml](/docker-compose.example.yml) and add the lines to your traefik config as instructed.  
-- Replace the dummy key in the example.  
+- Replace the dummy ID and key in the example.  
 - Replace the location variables: countries go in COUNTRY_CODES, locations smaller than countries go in SUB_CODES.  
 - Start up the container with ``docker-compose -f docker-compose.example.yml up -d``
 - Check the logs with ``docker logs -tf geoipfilter`` to confirm it's working.
@@ -37,6 +37,7 @@ When downloading the databases the last-modified datetime is queried and saved. 
 
 | Variable           | What it is                            | Example Value          |
 | ------------------ | ------------------------------------- |------------------------|
+| MAXMIND_ID         | Your MaxMind account ID              | ``stringOfNumbers``           |
 | MAXMIND_KEY        | Your MaxMind license key              | ``stringOfGibberish``           |
 | FILTER_TYPE        | Set the filter as an allow or blocklist| ``allow``               |
 | COUNTRY_CODES      | List of countries you want to allow/block IPs from. <br> See [formatting](#country_codes) for more details.| ``FR New-Zealand`` |
