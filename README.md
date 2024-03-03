@@ -60,6 +60,7 @@ When downloading the databases the last-modified datetime is queried and saved. 
 | COUNTRY_DIR | The directory inside the container that the country database file is saved to.</br>Default value `LASTMODIFIED_DIR/country`| `/path/foldername`      |
 | SUB_DIR | The directory inside the container that the subdivision database file is saved to.</br>Default value `LASTMODIFIED_DIR/sub`| `/path/foldername`      |
 | IPLIST_FILENAME | The filename of the configuration file containing the filter list. </br> Default value `IPList.conf` | `filename.conf` |
+| EXTRA_IPS | Additional IP addresses/ranges to append to the filter list. | `10.0.0.0/8 172.16.0.0/12 192.168.0.0/16` |
 <br>
 
 ## Formatting ISO 3166 codes and place names
