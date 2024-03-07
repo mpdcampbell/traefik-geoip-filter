@@ -207,9 +207,11 @@ sub_addIPsToIPList() {
 }
 
 extra_addIPsToIPList() {
-  echo "  Adding Extra IPs to ${ipListFilename}."
-  echo "    #Extra IPs" >> ${ipListFilePath}
-  printf '    "%s" 1;\n' "${extraIPs[@]}" >> "${ipListFilePath}"
+  if (($#)); then
+    echo "  Adding Extra IPs to ${ipListFilename}."
+    echo "    #Extra IPs" >> ${ipListFilePath}
+    printf '    "%s" 1;\n' "$@" >> "${ipListFilePath}"
+  fi
 }
 
 getLastModifiedArray=(country_getLastModified sub_getLastModified)
