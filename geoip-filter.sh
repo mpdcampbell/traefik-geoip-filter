@@ -8,6 +8,7 @@ maxMindLicenceKey=${MAXMIND_KEY}
 filterType="${FILTER_TYPE,,}"
 countryCodes=($COUNTRY_CODES)
 subCodes=($SUB_CODES)
+extraIPs=($EXTRA_IPS)
 searchMode="${SEARCH_MODE,,:-"false"}"
 allowStatusCode=${ALLOW_STATUS_CODE:-"200"}
 blockStatusCode=${BLOCK_STATUS_CODE:-"404"}
@@ -205,6 +206,14 @@ sub_addIPsToIPList() {
   fi
 }
 
+extra_addIPsToIPList() {
+  if (($#)); then
+    echo "  Adding Extra IPs to ${ipListFilename}."
+    echo "    #Extra IPs" >> ${ipListFilePath}
+    printf '    "%s" 1;\n' "$@" >> "${ipListFilePath}"
+  fi
+}
+
 getLastModifiedArray=(country_getLastModified sub_getLastModified)
 getZipArray=(country_getZip sub_getZip)
 
@@ -249,6 +258,7 @@ writeIpList() {
   startIpListFile
   country_loop "${countryCodes[@]}"
   sub_loop "${subCodes[@]}"
+  extra_addIPsToIPList "${extraIPs[@]}"
   endIpListFile
 }
 
