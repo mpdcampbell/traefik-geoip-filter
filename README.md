@@ -47,6 +47,7 @@ When downloading the databases the last-modified datetime is queried and saved. 
 
 | Variable             | What it is                                                                                | Example Value           |
 | ---------------------| ----------------------------------------------------------------------------------------- |-------------------------|
+| EXTRA_IPS | Additional IP addresses/ranges to append to the filter list. | `10.0.0.0/8 172.16.0.0/12 192.168.0.0/16` |
 | SEARCH_MODE          | Don't set up IP filter, instead list all matches for the country_codes and sub_codes values in the local database. </br> Default value ```false```| ``true``                     |
 | ALLOW_STATUS_CODE    | The status code returned when IP address is allowed to access container. </br> Default value ```200```| ``201``                     |
 | BLOCK_STATUS_CODE    | The status code returned when IP address is blocked. </br> Default value ```404```                    | ``403``                     |
@@ -60,7 +61,6 @@ When downloading the databases the last-modified datetime is queried and saved. 
 | COUNTRY_DIR | The directory inside the container that the country database file is saved to.</br>Default value `LASTMODIFIED_DIR/country`| `/path/foldername`      |
 | SUB_DIR | The directory inside the container that the subdivision database file is saved to.</br>Default value `LASTMODIFIED_DIR/sub`| `/path/foldername`      |
 | IPLIST_FILENAME | The filename of the configuration file containing the filter list. </br> Default value `IPList.conf` | `filename.conf` |
-| EXTRA_IPS | Additional IP addresses/ranges to append to the filter list. | `10.0.0.0/8 172.16.0.0/12 192.168.0.0/16` |
 <br>
 
 ## Formatting ISO 3166 codes and place names

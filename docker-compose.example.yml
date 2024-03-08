@@ -29,6 +29,8 @@ services:
     #Use ISO 3166-1 or 3166-2 codes (recommended), or place names with spaces replaced by dashes.
         - COUNTRY_CODES=FR New-Zealand
         - SUB_CODES=VN-43 West-Virginia:Dallas
+    #Optional, Append additional IPs to the filter list
+       #- EXTRA_IPS=10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
     #Optional, Overwrites the default cron schedule
        #- CRON_EXPRESSION=5 1 * * MON-FRI
     #Optional, Sets timezone used for cron, default UTC
