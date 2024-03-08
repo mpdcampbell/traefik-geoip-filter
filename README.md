@@ -56,7 +56,6 @@ When downloading the databases the last-modified datetime is queried and saved. 
 | CRON_EXPRESSION      | Overwrites the default cron schedule of ```0 6 * * wed,sat```                             | ```5 1 * * MON-FRI```         |
 | TZ                   | Sets the timezone inside the container, used by cron.</br>Default value ``UTC``                  | `EDT`                     |
 | CRON_LOG_PATH        | The filepath that the container that the cron log is written to.</br> Default value ``/var/log/cron.log`` | `/path/filename` |
-| TRAEFIK_PROVIDER_DIR | The directory inside the container that the middleware file is written to.</br>Default value ``/rules``| `/path/foldername`      |
 | LASTMODIFIED_DIR     | The directory inside the container that the GeoLite2 databases and date last updated timestamps are saved to by default. </br>Default value `/geoip`| `/path/foldername` |
 | COUNTRY_DIR | The directory inside the container that the country database file is saved to.</br>Default value `LASTMODIFIED_DIR/country`| `/path/foldername`      |
 | SUB_DIR | The directory inside the container that the subdivision database file is saved to.</br>Default value `LASTMODIFIED_DIR/sub`| `/path/foldername`      |
