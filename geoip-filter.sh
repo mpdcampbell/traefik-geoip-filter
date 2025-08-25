@@ -33,7 +33,7 @@ yearsOldDate="Sun, 07 Jan 1990 01:00:00 GMT"
 country_getRemoteLastModified() {
   remoteResponse=$(curl -LISsu "${basicAuth}" "${countryUrl}")
   statusCode=$(echo "$remoteResponse" | grep HTTP)
-  remoteLastModified=$(echo "$remoteResponse" | grep Last-Modified: | sed 's/Last-Modified: //')
+  remoteLastModified=$(echo "$remoteResponse" | grep -i last-modified: | sed 's/last-modified: //I')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
     echo "ERROR: The HEAD request on the GeoLite2 Country database failed with status code ${statusCode}"
     exit 1
@@ -43,7 +43,7 @@ country_getRemoteLastModified() {
 sub_getRemoteLastModified() {
   remoteResponse=$(curl -LISsu "${basicAuth}" "${subUrl}")
   statusCode=$(echo "$remoteResponse" | grep HTTP)
-  remoteLastModified=$(echo "$remoteResponse" | grep Last-Modified: | sed 's/Last-Modified: //')
+  remoteLastModified=$(echo "$remoteResponse" | grep -i last-modified: | sed 's/last-modified: //I')
   if [[ -z $(echo "$statusCode" | grep 200) ]]; then
     echo "ERROR: The HEAD request on the GeoLite2 City database failed with status code ${statusCode}"
     exit 1
