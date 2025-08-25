@@ -22,10 +22,10 @@ services:
      #volumes:
        #- /path/to/local/directory:/geoip
       environment:
-        - MAXMIND_ID="yourIDhere"
-        - MAXMIND_KEY="yourKeyhere"
+        - MAXMIND_ID=yourIDhere
+        - MAXMIND_KEY=yourKeyhere
     #Set the filter to act as an allowlist or blocklist
-        - FILTER_TYPE="allow"
+        - FILTER_TYPE=allow
     #Use ISO 3166-1 or 3166-2 codes (recommended), or place names with spaces replaced by dashes.
         - COUNTRY_CODES=FR New-Zealand
         - SUB_CODES=VN-43 West-Virginia:Dallas
