@@ -1,4 +1,4 @@
-FROM nginx:1.29.3-alpine
+FROM nginx:1.29.4-alpine
 RUN apk add --no-cache bash curl unzip tzdata
 COPY geoip-filter.sh ./opt/scripts/geoip-filter.sh 
 COPY search.sh /search.sh
