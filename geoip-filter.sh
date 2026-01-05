@@ -272,6 +272,11 @@ server {
     listen ${listenPort};
 
     location /traefik {
+        proxy_pass_request_headers off;
+        proxy_set_header X-Forwarded-For \$http_x_forwarded_for;
+        proxy_pass http://127.0.0.1:${listenPort}/internal;
+    }
+    location /internal {
         add_header Content-Type "default_type text/plain";
         if (\$inIPList = 1) {
             return ${filterStatusCode};
